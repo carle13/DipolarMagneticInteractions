@@ -28,8 +28,6 @@ def reciprocalSum(arguments):
                         sumG_i = sumG_i + q[alpha]*q[beta] * math.sin(arg)*math.exp(-G2/eta)/G2
     #                else:
     #                    print("G=0",h,k,l)
-    print(sumG_r)
-    print(sumG_i)
     return sumG_r, sumG_i
 
 def realSum(arguments):
@@ -83,8 +81,8 @@ def ewald(aL, a, b, c, q, tau, eta=4, hmaxg=20, hmaxT=20):
     ###########################    
     with Pool() as p:
         resReciprocal = p.map(reciprocalSum, intervals(hmaxg, numCpus, astar, bstar, cstar))
-    reciprocalReal = np.sum(resReciprocal[:][0])
-    reciprocalImaginary = np.sum(resReciprocal[:][1])
+    reciprocalReal = np.sum(list(zip(*resReciprocal))[0])
+    reciprocalImaginary = np.sum(list(zip(*resReciprocal))[1])
 
     reciprocalReal = 4*math.pi/Vol*reciprocalReal
     reciprocalImaginary = 4*math.pi/Vol*reciprocalImaginary
