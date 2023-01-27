@@ -86,21 +86,21 @@ def ewald(aL, a, b, c, q, tau, eta=4, hmaxg=20, hmaxT=20):
 
     reciprocalReal = 4*math.pi/Vol*reciprocalReal
     reciprocalImaginary = 4*math.pi/Vol*reciprocalImaginary
-    print("Reciprocal space sum Real part : %10.8f" % reciprocalReal)
-    print("Reciprocal space sum Img  part : %10.8f" % reciprocalImaginary)
+    #print("Reciprocal space sum Real part : %10.8f" % reciprocalReal)
+    #print("Reciprocal space sum Img  part : %10.8f" % reciprocalImaginary)
 
     ###########################    
     with Pool() as p:
         resReal = p.map(realSum, intervals(hmaxT, numCpus, a, b, c))
     realSpace = np.sum(resReal)
 
-    print("Real space sum                 : %10.8f" % realSpace)
+    #print("Real space sum                 : %10.8f" % realSpace)
 
     ###########################
     sumK = -math.sqrt(eta/math.pi)
-    print("Constant term                  : %10.8f" % sumK)
-    print()
+    #print("Constant term                  : %10.8f" % sumK)
+    #print()
 
-    print("Madelung constant Vohra  : %10.8f" %  (reciprocalReal + sumK + realSpace))
-    print("Madelung constant Kittel : %10.8f" % ((reciprocalReal + sumK + realSpace)*math.sqrt(3)/2))
+    #print("Madelung constant Vohra  : %10.8f" %  (reciprocalReal + sumK + realSpace))
+    #print("Madelung constant Kittel : %10.8f" % ((reciprocalReal + sumK + realSpace)*math.sqrt(3)/2))
     return  reciprocalReal, reciprocalImaginary, realSpace, sumK
