@@ -21,7 +21,7 @@ def reciprocalSum(arguments):
             for l in range (-hmaxg, hmaxg+1):
                 G  = h*astar + k*bstar + l*cstar
                 G2 = np.linalg.norm(G)**2
-                for beta in range (2):
+                for beta in range (len(q)):
                     arg = np.dot(G,tau[:,alpha] - tau[:,beta])
                     if G2 != 0:
                         sumG_r = sumG_r + q[alpha]*q[beta] * math.cos(arg)*math.exp(-G2/eta)/G2
@@ -46,7 +46,7 @@ def realSum(arguments):
         for k in range (-hmaxT, hmaxT+1):
             for l in range(-hmaxT, hmaxT+1):
                 T = h*a + k*b + l*c
-                for beta in range (2):
+                for beta in range (len(q)):
                     d = np.linalg.norm(tau[:,alpha] - tau[:,beta] + T) 
 
                     if ( d != 0 ):
