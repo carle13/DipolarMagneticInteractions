@@ -43,7 +43,7 @@ def realSum(arguments):
                             
     return sumR
 
-def sumCharges(aL, a, b, c, q, tau, hmaxT=20, parallel=True):
+def sumCharges(a, b, c, q, tau, hmaxT=20, parallel=True):
     # hmaxT defines the limit of the T vector
 
     if parallel:

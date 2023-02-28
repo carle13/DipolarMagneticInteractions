@@ -77,7 +77,7 @@ def realSum(arguments):
                             sumR += q[alpha]*q[beta]*math.erfc(1/2.*math.sqrt(eta)*d)/d
     return sumR
 
-def ewald(aL, a, b, c, q, tau, eta=4, hmaxg=20, hmaxT=20, parallel=True):
+def ewald(a, b, c, q, tau, eta=4, hmaxg=20, hmaxT=20, parallel=True):
     # Defines the Ewald variables
     # eta is the convergent parameter for the Ewald's sum
     # hmaxg defines the Ewald limit of the G vector

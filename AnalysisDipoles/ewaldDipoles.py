@@ -36,7 +36,7 @@ def reciprocalSum(arguments):
                     for beta in range(len(tau[0])):
                         if G2 != 0:
                             arg = np.dot(G,tau[:,alpha] - tau[:,beta])
-                            exp1 = math.exp(-(math.sqrt(G2)/math.sqrt(eta))**2)
+                            exp1 = math.exp(-(4.0*G2/eta))
                             sumDipoleReal += np.dot(spins[:, alpha], G)*np.dot(spins[:, beta], G) * math.cos(arg)*exp1/G2
                             sumDipoleImaginary += np.dot(spins[:, alpha], G)*np.dot(spins[:, beta], G) * math.sin(arg)*exp1/G2
     return sumDipoleReal, sumDipoleImaginary
@@ -53,6 +53,7 @@ def realSum(arguments):
     hmaxT = arguments[8]
     sumDipole = 0.
 
+    sumCell = 0.0
     #Sum of the each atom with all the atoms within the cell
     if 0 in range(limInf, limSup):
         for alpha in range(len(tau[0])):
@@ -62,12 +63,16 @@ def realSum(arguments):
                     d = np.linalg.norm(tau[:,alpha] - tau[:,beta])
                     dHat = dVec / d
                     alp = 0.5*math.sqrt(eta)
-                    bSite = (math.erfc(alp*d) + math.exp(-alp**2*d**2)*2*alp*d/math.sqrt(math.pi))
-                    cSite = (3*math.erfc(alp*d) + math.exp(-alp**2*d**2)*(3+2*alp**2*d**2)*2*alp*d/math.sqrt(math.pi))
+                    d2 = d**2
+                    bSite = (math.erfc(alp*d) + math.exp(-(d2*alp**2))*2*alp*d/math.sqrt(math.pi))
+                    cSite = (3*math.erfc(alp*d) + math.exp(-(d2*alp**2))*(3+2*d2*alp**2)*2*alp*d/math.sqrt(math.pi))
                     firstTerm = np.dot(spins[:,alpha], spins[:,beta]) * bSite
                     secondTerm = np.dot(spins[:, alpha], dHat)*np.dot(spins[:, beta], dHat)*cSite
                     sumDipole += (firstTerm - secondTerm)/d**3
+                    sumCell += (firstTerm - secondTerm)/d**3
+        print('Sum of the cell: '+str(sumCell))
 
+    sumEachRest = 0.0
     #Sum of each atom with all other atoms in neighboring cells
     for alpha in range(len(tau[0])):
         for h in range (limInf, limSup):
@@ -87,7 +92,9 @@ def realSum(arguments):
                             firstTerm = np.dot(spins[:,alpha], spins[:,beta]) * bSite
                             secondTerm = np.dot(spins[:, alpha], dHat)*np.dot(spins[:, beta], dHat)*cSite
                             sumDipole += (firstTerm - secondTerm)/d**3
+                            sumEachRest += (firstTerm - secondTerm)/d**3
     
+    print('Sum each atom with rest: '+str(sumEachRest))
     return sumDipole
 
 def ewald(a, b, c, tau, spins, eta=4, hmaxg=20, hmaxT=20, parallel=True):
@@ -140,6 +147,6 @@ def ewald(a, b, c, tau, spins, eta=4, hmaxg=20, hmaxT=20, parallel=True):
 
         realSpaceDipole = realSum([-hmaxT,  hmaxT+1, a, b, c, tau, spins, eta, hmaxT]) / len(tau[0])
 
-        sumDipoleK = - (math.sqrt(eta)**3) / (math.sqrt(math.pi)*6)
+        sumDipoleK = - (2.0*(math.sqrt(eta)/2.0)**3) / (math.sqrt(math.pi)*3.0)
 
     return reciprocalDipoleReal, reciprocalDipoleImaginary, realSpaceDipole, sumDipoleK
