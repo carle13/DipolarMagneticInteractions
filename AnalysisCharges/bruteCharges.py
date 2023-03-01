@@ -4,6 +4,7 @@ from multiprocessing import Pool
 from os import cpu_count
 
 def realSum(arguments):
+    #Arguments of the function (passed as an array as a requirement for multiprocessing Pool)
     limInf = arguments[0]
     limSup = arguments[1]
     a = arguments[2]
@@ -12,8 +13,9 @@ def realSum(arguments):
     tau = arguments[5]
     q = arguments[6]
     hmaxT = arguments[7]
+
+    #Initialize sums
     sumR = 0.
-    # sphereRadius = hmaxT**2
 
     #Sum of the each atom with all the atoms within the cell (counting once)
     if 0 in range(limInf, limSup):
@@ -28,7 +30,7 @@ def realSum(arguments):
         for h in range (limInf, limSup):
             for k in range (-hmaxT, hmaxT+1):
                 for l in range(-hmaxT, hmaxT+1):
-                    if h == 0 and k == 0 and l == 0:
+                    if h == 0 and k == 0 and l == 0: #Skip terms within the unit cell
                         continue
                     T = h*a + k*b + l*c
                     # rbox_sq = h**2 + k**2 + l**2
@@ -60,11 +62,11 @@ def sumCharges(a, b, c, q, tau, hmaxT=20, parallel=True):
                 return [(round(i * increment - maximum), round((i + 1) * increment - maximum), a, b, c, tau, q, maximum) for i in range((maximum*2+1))]
 
         ###########################    
-        with Pool() as p:
+        with Pool() as p: #Run the function among the different processors
             resReal = p.map(realSum, intervals(hmaxT, numCpus))
         realSpace = np.sum(resReal) / len(q)
         ###########################
-    else:
+    else: #Serial mode, no work division between processors
         realSpace = realSum([-hmaxT, hmaxT+1, a, b, c, tau, q, hmaxT]) / len(q)
 
     return realSpace

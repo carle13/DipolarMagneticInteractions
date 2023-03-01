@@ -4,6 +4,7 @@ from multiprocessing import Pool
 from os import cpu_count
 
 def reciprocalSum(arguments):
+    #Arguments of the function (passed as an array as a requirement for multiprocessing Pool)
     limInf = arguments[0]
     limSup = arguments[1]
     astar = arguments[2]
@@ -13,10 +14,13 @@ def reciprocalSum(arguments):
     q = arguments[6]
     eta = arguments[7]
     hmaxg = arguments[8]
+
+    #Initialize sums
     sumG_r = 0.
     sumG_i = 0.
 
     # #Sum of the each atom with all the atoms within the cell (counting once)
+    #Not included for reciprocal sum!
     # if 0 in range(limInf, limSup):
     #     for alpha in range(len(q)):
     #         for beta in range (len(q)):
@@ -31,18 +35,19 @@ def reciprocalSum(arguments):
         for h in range (limInf, limSup):
             for k in range (-hmaxg, hmaxg+1):
                 for l in range (-hmaxg, hmaxg+1):
-                    if h == 0 and k == 0 and l == 0:
+                    if h == 0 and k == 0 and l == 0: #Skip terms within the unit cell
                         continue
                     G  = h*astar + k*bstar + l*cstar
                     G2 = np.linalg.norm(G)**2
                     for beta in range (len(q)):
                         arg = np.dot(G,tau[:,alpha] - tau[:,beta])
                         if G2 != 0:
-                            sumG_r += q[alpha]*q[beta] * math.cos(arg)*math.exp(-G2/eta)/G2
-                            sumG_i += q[alpha]*q[beta] * math.sin(arg)*math.exp(-G2/eta)/G2
+                            sumG_r += q[alpha]*q[beta] * math.cos(arg)*math.exp(-G2/eta)/G2 #Real part of the exponential
+                            sumG_i += q[alpha]*q[beta] * math.sin(arg)*math.exp(-G2/eta)/G2 #Imaginary part of the exponential
     return sumG_r, sumG_i
 
 def realSum(arguments):
+    #Arguments of the function (passed as an array as a requirement for multiprocessing Pool)
     limInf = arguments[0]
     limSup = arguments[1]
     a = arguments[2]
@@ -52,6 +57,8 @@ def realSum(arguments):
     q = arguments[6]
     eta = arguments[7]
     hmaxT = arguments[8]
+
+    #Initialize sums
     sumR = 0.
     alpha = 0
 
@@ -68,7 +75,7 @@ def realSum(arguments):
         for h in range (limInf, limSup):
             for k in range (-hmaxT, hmaxT+1):
                 for l in range(-hmaxT, hmaxT+1):
-                    if h == 0 and k == 0 and l == 0:
+                    if h == 0 and k == 0 and l == 0: #Skip terms within the unit cell
                         continue
                     T = h*a + k*b + l*c
                     for beta in range (len(q)):
@@ -78,7 +85,6 @@ def realSum(arguments):
     return sumR
 
 def ewald(a, b, c, q, tau, eta=4, hmaxg=20, hmaxT=20, parallel=True):
-    # Defines the Ewald variables
     # eta is the convergent parameter for the Ewald's sum
     # hmaxg defines the Ewald limit of the G vector
     # hmaxT defines the Ewald limit of the T vector
@@ -89,11 +95,12 @@ def ewald(a, b, c, q, tau, eta=4, hmaxg=20, hmaxT=20, parallel=True):
     astar =  (2*(math.pi/Vol))*np.cross(b,c)
     bstar =  (2*(math.pi/Vol))*np.cross(c,a)
     cstar =  (2*(math.pi/Vol))*np.cross(a,b)
+
     if parallel:
         #Multiprocessing
         numCpus = cpu_count()
 
-        def intervals(maximum, numCpus, a1, b1, c1):
+        def intervals(maximum, numCpus, a1, b1, c1): #Function to divide the limits of the for loop among the processors
             increment = (maximum*2+1) / numCpus
             if increment >= 1:
                 return [(round(i * increment - maximum), round((i + 1) * increment - maximum), a1, b1, c1, tau, q, eta, maximum) for i in range(numCpus)]
@@ -102,7 +109,7 @@ def ewald(a, b, c, q, tau, eta=4, hmaxg=20, hmaxT=20, parallel=True):
                 return [(round(i * increment - maximum), round((i + 1) * increment - maximum), a1, b1, c1, tau, q, eta, maximum) for i in range((maximum*2+1))]
 
         ###########################    
-        with Pool() as p:
+        with Pool() as p: #Run the function among the different processors
             resReciprocal = p.map(reciprocalSum, intervals(hmaxg, numCpus, astar, bstar, cstar))
         reciprocalReal = np.sum(list(zip(*resReciprocal))[0])
         reciprocalImaginary = np.sum(list(zip(*resReciprocal))[1])
@@ -111,14 +118,14 @@ def ewald(a, b, c, q, tau, eta=4, hmaxg=20, hmaxT=20, parallel=True):
         reciprocalImaginary = (4.0*math.pi/Vol)*reciprocalImaginary / len(q)
 
         ###########################    
-        with Pool() as p:
+        with Pool() as p: #Run the function among the different processors
             resReal = p.map(realSum, intervals(hmaxT, numCpus, a, b, c))
         realSpace = np.sum(resReal) / len(q)
 
         ###########################
         sumK = -math.sqrt(eta/math.pi)
 
-    else:
+    else: #Serial mode, no work division between processors
         reciprocalReal, reciprocalImaginary = reciprocalSum([-hmaxg, hmaxg+1, astar, bstar, cstar, tau, q, eta, hmaxg])
         reciprocalReal = (4.0*math.pi/Vol)*reciprocalReal / len(q)
         reciprocalImaginary = (4.0*math.pi/Vol)*reciprocalImaginary / len(q)

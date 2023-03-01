@@ -93,8 +93,6 @@ def sumDipoles(a, b, c, tau, spins, hmaxT=20, parallel=True):
         realSpaceDipole = np.sum(resReal)
         ###########################
 
-        #print(list(zip(*resReal))[1])
-
     else:
         realSpaceDipole = realSum([-hmaxT, hmaxT+1, a, b, c, tau, spins, hmaxT])
 

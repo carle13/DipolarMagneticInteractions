@@ -36,9 +36,9 @@ def reciprocalSum(arguments):
                     for beta in range(len(tau[0])):
                         if G2 != 0:
                             arg = np.dot(G,tau[:,alpha] - tau[:,beta])
-                            exp1 = math.exp(-(4.0*G2/eta))
-                            sumDipoleReal += np.dot(spins[:, alpha], G)*np.dot(spins[:, beta], G) * math.cos(arg)*exp1/G2
-                            sumDipoleImaginary += np.dot(spins[:, alpha], G)*np.dot(spins[:, beta], G) * math.sin(arg)*exp1/G2
+                            exp1 = math.exp(-(G2/eta))
+                            sumDipoleReal += (np.dot(spins[:, alpha], G)*np.dot(spins[:, beta], G) * math.cos(arg)*exp1/G2) / 2.0
+                            sumDipoleImaginary += (np.dot(spins[:, alpha], G)*np.dot(spins[:, beta], G) * math.sin(arg)*exp1/G2) / 2.0
     return sumDipoleReal, sumDipoleImaginary
 
 def realSum(arguments):
@@ -58,12 +58,14 @@ def realSum(arguments):
     if 0 in range(limInf, limSup):
         for alpha in range(len(tau[0])):
             for beta in range(len(tau[0])):
-                if ( alpha != beta ):
+                if ( beta > alpha ):
                     dVec = tau[:, alpha] - tau[:, beta]
                     d = np.linalg.norm(tau[:,alpha] - tau[:,beta])
                     dHat = dVec / d
                     alp = 0.5*math.sqrt(eta)
                     d2 = d**2
+                    # bSite = (math.erfc(alp*d) + math.exp(-(d2*alp**2))*2*alp*d/math.sqrt(math.pi))
+                    # cSite = (3*math.erfc(alp*d) + math.exp(-(d2*alp**2))*(3+2*d2*alp**2)*2*alp*d/math.sqrt(math.pi))
                     bSite = (math.erfc(alp*d) + math.exp(-(d2*alp**2))*2*alp*d/math.sqrt(math.pi))
                     cSite = (3*math.erfc(alp*d) + math.exp(-(d2*alp**2))*(3+2*d2*alp**2)*2*alp*d/math.sqrt(math.pi))
                     firstTerm = np.dot(spins[:,alpha], spins[:,beta]) * bSite
@@ -87,12 +89,15 @@ def realSum(arguments):
                         dHat = dVec / d
                         if ( d != 0 ):
                             alp = 0.5*math.sqrt(eta)
-                            bSite = (math.erfc(alp*d) + math.exp(-alp**2*d**2)*2*alp*d/math.sqrt(math.pi))
-                            cSite = (3*math.erfc(alp*d) + math.exp(-alp**2*d**2)*(3+2*alp**2*d**2)*2*alp*d/math.sqrt(math.pi))
+                            d2 = d**2
+                            # bSite = (math.erfc(alp*d) + math.exp(-(d2*alp**2))*2*alp*d/math.sqrt(math.pi))
+                            # cSite = (3*math.erfc(alp*d) + math.exp(-(d2*alp**2))*(3+2*d2*alp**2)*2*alp*d/math.sqrt(math.pi))
+                            bSite = (math.erfc(alp*d) + math.exp(-(d2*alp**2))*2*alp*d/math.sqrt(math.pi))
+                            cSite = (3*math.erfc(alp*d) + math.exp(-(d2*alp**2))*(3+2*d2*alp**2)*2*alp*d/math.sqrt(math.pi))
                             firstTerm = np.dot(spins[:,alpha], spins[:,beta]) * bSite
                             secondTerm = np.dot(spins[:, alpha], dHat)*np.dot(spins[:, beta], dHat)*cSite
-                            sumDipole += (firstTerm - secondTerm)/d**3
-                            sumEachRest += (firstTerm - secondTerm)/d**3
+                            sumDipole += ((firstTerm - secondTerm)/d**3) / 2.0
+                            sumEachRest += ((firstTerm - secondTerm)/d**3) / 2.0
     
     print('Sum each atom with rest: '+str(sumEachRest))
     return sumDipole
@@ -103,7 +108,6 @@ def ewald(a, b, c, tau, spins, eta=4, hmaxg=20, hmaxT=20, parallel=True):
     # hmaxg defines the Ewald limit of the G vector
     # hmaxT defines the Ewald limit of the T vector
     Vol = np.abs(np.dot(a, np.cross(b, c)))
-    print('Volume is: ' +str(Vol))
     # Vol = float((aL)**3)
 
     # Calculating reciprocal lattice vectors
@@ -138,15 +142,15 @@ def ewald(a, b, c, tau, spins, eta=4, hmaxg=20, hmaxT=20, parallel=True):
         realSpaceDipole = np.sum(resReal)
 
         ###########################
-        sumDipoleK = - (math.sqrt(eta)**3) / (math.sqrt(math.pi)*6)
+        sumDipoleK = - ((2.0*(math.sqrt(eta)/2.0)**3) / (math.sqrt(math.pi)*3.0)) * len(tau[0])
 
     else:
         reciprocalDipoleReal, reciprocalDipoleImaginary = reciprocalSum([-hmaxg, hmaxg+1, astar, bstar, cstar, tau, spins, eta, hmaxg])
-        reciprocalDipoleReal = (4.0*math.pi/Vol)*reciprocalDipoleReal / len(tau[0])
-        reciprocalDipoleImaginary = (4.0*math.pi/Vol)*reciprocalDipoleImaginary / len(tau[0])
+        reciprocalDipoleReal = (4.0*math.pi/Vol)*reciprocalDipoleReal
+        reciprocalDipoleImaginary = (4.0*math.pi/Vol)*reciprocalDipoleImaginary
 
-        realSpaceDipole = realSum([-hmaxT,  hmaxT+1, a, b, c, tau, spins, eta, hmaxT]) / len(tau[0])
+        realSpaceDipole = realSum([-hmaxT,  hmaxT+1, a, b, c, tau, spins, eta, hmaxT])
 
-        sumDipoleK = - (2.0*(math.sqrt(eta)/2.0)**3) / (math.sqrt(math.pi)*3.0)
+        sumDipoleK = - ((2.0*(math.sqrt(eta)/2.0)**3) / (math.sqrt(math.pi)*3.0)) * len(tau[0])
 
     return reciprocalDipoleReal, reciprocalDipoleImaginary, realSpaceDipole, sumDipoleK

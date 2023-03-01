@@ -25,15 +25,14 @@ def realSum(arguments):
                 # distances.append(d**3)
                 if ( beta > alpha ):
                     dHat = dVec / d
-                    #sumR += q[alpha]*q[beta]/d
                     firstTerm = np.dot(spins[:,alpha], spins[:,beta])
                     secondTerm = 3*np.dot(spins[:, alpha], dHat)*np.dot(spins[:, beta], dHat)
-                    print('distance: ' + str(d))
-                    print('vector: ' + str(dHat))
-                    print('First term: ' +str(firstTerm))
-                    print('Second term: ' +str(secondTerm))
-                    print('E'+str(alpha)+str(beta)+': '+str((firstTerm - secondTerm) / d**3))
-                    print()
+                    # print('distance: ' + str(d))
+                    # print('vector: ' + str(dHat))
+                    # print('First term: ' +str(firstTerm))
+                    # print('Second term: ' +str(secondTerm))
+                    # print('E'+str(alpha)+str(beta)+': '+str((firstTerm - secondTerm) / d**3))
+                    # print()
                     sumDipole += (firstTerm - secondTerm) / d**3
                     sumCell += (firstTerm - secondTerm) / d**3
     print('Sum of the cell: '+str(sumCell))
@@ -59,17 +58,15 @@ def realSum(arguments):
                         #sumR += q[alpha]*q[beta]/d
                         firstTerm = np.dot(spins[:,alpha], spins[:,beta])
                         secondTerm = 3*np.dot(spins[:, alpha], dHat)*np.dot(spins[:, beta], dHat)
-                        print('distance: ' + str(d))
-                        print('factors: ' +str(h)+'  '+str(k))
-                        print('vector: ' + str(dHat))
-                        print('First term: ' +str(firstTerm))
-                        print('Second term: ' +str(secondTerm))
-                        print('E'+str(alpha)+' with rest: '+str((firstTerm - secondTerm) / d**3))
-                        print()
+                        # print('distance: ' + str(d))
+                        # print('factors: ' +str(h)+'  '+str(k))
+                        # print('vector: ' + str(dHat))
+                        # print('First term: ' +str(firstTerm))
+                        # print('Second term: ' +str(secondTerm))
+                        # print('E'+str(alpha)+' with rest: '+str((firstTerm - secondTerm) / d**3))
+                        # print()
                         sumDipole += ((firstTerm - secondTerm) / d**3)/2.0
                         sumEachRest += ((firstTerm - secondTerm) / d**3)/2.0
-    #                else:
-    #                    print("d =0")
     print('Sum each atom with rest: '+str(sumEachRest))
     return sumDipole
 
